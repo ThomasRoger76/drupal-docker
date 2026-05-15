@@ -227,4 +227,4 @@ AWS_ACCESS_KEY_ID=AKIAQZFBVWEDY2KM3ZWN
 AWS_SECRET_ACCESS_KEY=UkA3meHBHaHI5sLnKGdShppU...
 ```
 
-**⚠️ Cas réel detecté :** Le projet `francetvpro.fr` avait des clés AWS réelles dans `.env.dist` — celles-ci étaient dans git. C'est une fuite de credentials. Toujours des placeholders dans `.env.dist`.
+**⚠️ Erreur fréquente :** Des clés AWS réelles dans `.env.dist` committé en git — fuite de credentials immédiate. Toujours mettre des placeholders dans `.env.dist`, jamais les vraies valeurs.

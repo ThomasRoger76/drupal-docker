@@ -44,7 +44,7 @@ private/
 config/
 
 # Outils de développement
-.ddev/
+.docker compose exec php/
 .idea/
 .vscode/
 

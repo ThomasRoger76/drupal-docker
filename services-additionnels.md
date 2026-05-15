@@ -48,12 +48,12 @@ docker compose restart solr
 // Core: drupal
 ```
 
-### DDEV + Solr
+### Solr avec Docker Compose
 
 ```bash
-ddev get ddev/ddev-solr
-ddev restart
-# Solr accessible sur https://mon-projet.ddev.site:8983
+# module non nécessaire avec Docker Compose
+docker compose restart php
+# Solr accessible sur https://mon-projet.docker compose exec php.site:8983
 ```
 
 ---

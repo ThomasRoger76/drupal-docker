@@ -19,7 +19,7 @@
 
 **Nouveaux fichiers :**
 - `dockerignore-build.md` : `.dockerignore` template complet, Dockerfile multi-stage (prod vs dev), `docker compose watch`
-- `ddev.md` : DDEV configuration complète, comparatif DDEV vs Docker Compose, add-ons (Solr, Redis, Chrome), migration vers DDEV
+- `docker compose exec php.md` : DDEV configuration complète, comparatif DDEV vs Docker Compose, add-ons (Solr, Redis, Chrome), migration vers DDEV
 - `services-additionnels.md` : Solr Search API, Elasticsearch, Varnish, Redis complet avec prérequis, Mailpit, Portainer
 
 **Ajouts dans les fichiers existants :**
@@ -31,16 +31,16 @@
 
 ## v1.0 — 2026-05-14
 
-**Création initiale — basé sur les projets réels Drupal (canut, cci-le-mans, francetvpro.fr, vyv-enfance)**
+**Création initiale — basé sur des projets Drupal 10/11 réels**
 
-### Sources d'inspiration
+### Patterns couverts
 
-Les patterns documentés dans ce skill sont extraits directement de projets Drupal 10/11 containerisés observés dans les projets du développeur :
-- **cci-le-mans** : PHP+Apache all-in-one, MariaDB 11, Maildev, Node webpack, Makefile complet
-- **vyv-enfance** : PHP+Apache + Caddy (TLS local), MariaDB, Maildev, Node webpack
-- **canut** : PHP-FPM séparé + Apache httpd, Memcached, extra_hosts pour Xdebug
-- **francetvpro.fr** : PHP-FPM + Apache httpd + Gulp, MySQL, CI avec image source-code
-- Registre privé GitLab : `registry.gitlab.factory.digiwin.tech`
+Les configurations documentées dans ce skill sont extraites de projets Drupal 10/11 containerisés :
+- PHP+Apache all-in-one avec MariaDB 11, Maildev, Node webpack, Makefile
+- PHP+Apache + Caddy (TLS local), MariaDB, Maildev, Node webpack
+- PHP-FPM séparé + Apache httpd, Memcached, Xdebug
+- PHP-FPM + Apache + Gulp, MySQL, pipeline CI avec image source-code
+- Registre privé GitLab
 
 ### Couverture
 
@@ -73,7 +73,7 @@ Les patterns documentés dans ce skill sont extraits directement de projets Drup
 - `settings.local.php` avec cache null, verbose errors
 - `services.yml` pour Twig debug
 - Pattern multi-environnements via `COMPOSE_FILE`
-- Gestion des secrets — leçon du cas francetvpro.fr (clés AWS dans git)
+- Gestion des secrets — clés AWS dans `.env.dist` committé (erreur fréquente)
 
 **`makefile-workflow.md`**
 - Makefile complet (install, install-linux, up, down, verify, logs, shell, drush, db-dump, db-import, theme-*)
@@ -110,7 +110,7 @@ Les patterns documentés dans ce skill sont extraits directement de projets Drup
   - `localhost` → DB refusée
   - `AllowOverride None` → 404 Drupal
   - `docker compose down -v` → perte DB
-  - Clés AWS dans git (cas réel francetvpro.fr)
+  - Clés AWS dans git (credentials dans `.env.dist`)
   - Xdebug non connecté
   - Permission denied sur files/
   - Conflits de ports entre projets

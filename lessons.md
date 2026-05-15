@@ -25,7 +25,7 @@ Problèmes réels rencontrés sur les projets Drupal containerisés. Mis à jour
 - **Prévention :** Créer des dumps régulièrement avec `make db-dump`. Documenter dans README que `-v` = perte DB
 
 ### Clés AWS réelles dans `.env.dist` → Exposition dans git
-- **Symptôme :** Credentials exposés dans l'historique git (cas réel sur francetvpro.fr)
+- **Symptôme :** Credentials exposés dans l'historique git
 - **Cause :** `.env.dist` committé avec des valeurs réelles au lieu de placeholders
 - **Correct :** Toujours des placeholders dans `.env.dist` — jamais de valeurs réelles sensibles
 - **Prévention :** Ajouter `git-secrets` ou un hook pre-commit qui détecte les patterns de credentials
@@ -48,7 +48,7 @@ Problèmes réels rencontrés sur les projets Drupal containerisés. Mis à jour
 - **Symptôme :** `Error: Bind for 0.0.0.0:80 failed: port is already allocated`
 - **Cause :** Deux projets avec le même port exposé (`HTTPD_PORT=80`) démarrés en même temps
 - **Correct :** Attribuer des ports uniques par projet dans `.env.dist` (ex: 80, 81, 82, 83...)
-- **Prévention :** Convention d'équipe pour les ports. Ex: cci=80, vyv=81, canut=82, france=83
+- **Prévention :** Convention d'équipe — attribuer un port fixe par projet dans `.env.dist`. Ex: projet-a=80, projet-b=81, projet-c=82
 
 ### `composer install` très lent dans le container
 - **Symptôme :** `composer install` prend 5-10 minutes à chaque `make install`

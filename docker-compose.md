@@ -238,6 +238,139 @@ Sans `depends_on`, PHP peut démarrer avant que la DB soit prête → erreur de 
 
 ---
 
+## PostgreSQL — Alternative à MariaDB
+
+### Service PostgreSQL
+
+```yaml
+# .docker/docker-compose.yml
+services:
+
+  php:
+    image: ${REGISTRY}/drupal-php-base-dev:${PHP_VERSION:-8.3}
+    environment:
+      # Variables PostgreSQL — préfixe différent de MariaDB
+      POSTGRES_DB: ${BDD_POSTGRES_DATABASE}
+      POSTGRES_USER: ${BDD_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${BDD_POSTGRES_PASSWORD}
+      POSTGRES_HOSTNAME: postgres   # ← Nom du service, résolu par DNS Docker
+      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:16.11
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - ./services/postgres/dump:/dump      # Dumps SQL accessibles depuis le container
+      - pgdata:/var/lib/postgresql/data     # Données persistantes
+    environment:
+      - PGDATA=/var/lib/postgresql/data
+      - POSTGRES_PASSWORD=${BDD_POSTGRES_PASSWORD}
+      - POSTGRES_USER=${BDD_POSTGRES_USER}
+      - POSTGRES_DB=${BDD_POSTGRES_DATABASE}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${BDD_POSTGRES_USER} -d ${BDD_POSTGRES_DATABASE}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Adminer — interface web pour PostgreSQL ET MariaDB
+  adminer:
+    image: adminer:latest
+    ports:
+      - "${ADMINER_PORT:-8080}:8080"
+    environment:
+      - ADMINER_DEFAULT_SERVER=postgres   # Pointer vers PostgreSQL par défaut
+
+volumes:
+  pgdata:   # Données PostgreSQL persistantes
+```
+
+### .env.dist avec variables PostgreSQL
+
+```bash
+###########################
+# PostgreSQL
+###########################
+BDD_POSTGRES_DATABASE=drupal
+BDD_POSTGRES_USER=drupal
+BDD_POSTGRES_PASSWORD=drupal
+POSTGRES_PORT=5432
+
+###########################
+# Interface DB (Adminer supporte PostgreSQL, contrairement à PhpMyAdmin)
+###########################
+ADMINER_PORT=8080
+```
+
+### settings.php pour PostgreSQL
+
+```php
+// web/sites/default/settings.php — driver pgsql
+$databases['default']['default'] = [
+  'driver'    => 'pgsql',
+  'namespace' => 'Drupal\\pgsql\\Driver\\Database\\pgsql',
+  'autoload'  => 'core/modules/pgsql/src/Driver/Database/pgsql/',
+  'host'      => getenv('POSTGRES_HOSTNAME') ?: 'postgres',
+  'port'      => getenv('POSTGRES_PORT') ?: '5432',
+  'database'  => getenv('POSTGRES_DB') ?: 'drupal',
+  'username'  => getenv('POSTGRES_USER') ?: 'drupal',
+  'password'  => getenv('POSTGRES_PASSWORD') ?: 'drupal',
+  'prefix'    => '',
+  // Pas de charset/collation ici — PostgreSQL les gère à la création de la DB
+];
+```
+
+### Différences PostgreSQL vs MariaDB dans Drupal
+
+| Aspect | MariaDB | PostgreSQL |
+|--------|---------|------------|
+| Driver Drupal | `mysql` | `pgsql` |
+| Namespace | `Drupal\\mysql\\...` | `Drupal\\pgsql\\...` |
+| Variable hôte | `MARIADB_HOSTNAME` | `POSTGRES_HOSTNAME` |
+| Port par défaut | 3306 | 5432 |
+| Interface web | PhpMyAdmin ou Adminer | **Adminer uniquement** (PMA ne supporte pas PSQL) |
+| Format dump | `.sql` via `mariadb-dump` | `.sql` via `pg_dump` |
+| Import dump | `mariadb < dump.sql` | `psql < dump.sql` |
+| Commande dump container | `docker compose exec postgres pg_dump -U user db > dump.sql` | idem |
+| Commande import container | `docker compose exec -T postgres psql -U user db < dump.sql` | idem |
+| `--` commentaires SQL | ✅ compatible | ✅ compatible |
+| Extensions Drupal core | `mysql` module | `pgsql` module (inclus dans core) |
+
+### Dump et restauration PostgreSQL
+
+```bash
+# Créer un dump
+docker compose exec postgres \
+  pg_dump -U ${BDD_POSTGRES_USER} ${BDD_POSTGRES_DATABASE} \
+  > .docker/services/postgres/dump/dump-$(date +%Y%m%d-%H%M).sql
+
+# Restaurer un dump
+docker compose exec -T postgres \
+  psql -U ${BDD_POSTGRES_USER} ${BDD_POSTGRES_DATABASE} \
+  < .docker/services/postgres/dump/dump-20260514-1200.sql
+
+# Vérifier la connexion
+docker compose exec postgres \
+  psql -U ${BDD_POSTGRES_USER} -d ${BDD_POSTGRES_DATABASE} -c "\dt"
+```
+
+### Extension PHP pdo_pgsql dans le Dockerfile
+
+```dockerfile
+# Ajouter dans le Dockerfile PHP
+RUN apt-get update -y && \
+    apt-get install -y libpq-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN docker-php-ext-install -j "$(nproc)" pdo_pgsql pgsql
+```
+
+---
+
 ## Isolation entre Projets — `COMPOSE_PROJECT_NAME`
 
 ```bash
@@ -252,7 +385,7 @@ COMPOSE_PROJECT_NAME=ccilemans
 docker compose ps   # ← affiche les noms au format PROJECT-SERVICE-INDEX
 
 # Ports différents par projet pour éviter les conflits :
-# ccilemans: HTTPD_PORT=80, MARIADB_PORT=3306
-# vyv: HTTPD_PORT=81, MARIADB_PORT=3307
-# canut: HTTPD_PORT=82, MARIADB_PORT=3308
+# projet-a: HTTPD_PORT=80, MARIADB_PORT=3306
+# projet-b: HTTPD_PORT=81, MARIADB_PORT=3307
+# projet-c: HTTPD_PORT=82, MARIADB_PORT=3308
 ```

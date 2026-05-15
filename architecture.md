@@ -16,7 +16,7 @@
 
 ## 3 Patterns d'Architecture — Comparatif Réel
 
-### Option A — PHP+Apache tout-en-un (simple, cci-le-mans, vyv-enfance)
+### Option A — PHP+Apache tout-en-un (recommandé pour projets simples)
 
 ```yaml
 services:
@@ -31,7 +31,7 @@ services:
 
 Avantages : 1 seul container à gérer, simpler pour les équipes. Idéal pour les projets où le même container sert le PHP ET expose Apache.
 
-### Option B — PHP-FPM + Apache séparés (canut, francetvpro.fr)
+### Option B — PHP-FPM + Apache séparés (projets nécessitant scaling indépendant)
 
 ```yaml
 services:
@@ -47,7 +47,7 @@ services:
 
 Avantages : scaling indépendant, configs séparées, plus proche de la prod.
 
-### Option C — PHP+Apache + Caddy en front (vyv-enfance, recommandé pour HTTPS local)
+### Option C — PHP+Apache + Caddy en front (recommandé pour HTTPS local automatique)
 
 ```yaml
 services:
@@ -283,9 +283,9 @@ container php → réseau Docker → container database
 php:
   image: php:8.3-apache       # Officielle, stable, à customiser
 
-# Images d'un registre privé GitLab (pattern réel des projets Digiwin)
+# Images d'un registre privé GitLab
 php:
-  image: registry.gitlab.factory.digiwin.tech/drupal/drupal-11/drupal-php-base-dev:${PHP_VERSION}
+  image: registry.gitlab.example.com/drupal/mon-projet/drupal-php-base-dev:${PHP_VERSION}
   build:
     context: services/apache-php-base  # Build local si l'image n'existe pas
     args:

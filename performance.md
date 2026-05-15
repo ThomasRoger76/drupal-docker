@@ -54,18 +54,18 @@ volumes:
 
 ---
 
-## Solution 2 — DDEV (Gère Mutagen automatiquement)
+## Solution 2 — Mutagen (Docker Compose)
 
-DDEV configure automatiquement Mutagen sur Mac/Windows :
+Mutagen peut être configuré avec Docker Compose via mutagen-compose :
 
 ```yaml
-# .ddev/config.yaml
+# .docker compose exec php/config.yaml
 mutagen_enabled: true   # Active Mutagen pour les performances
 ```
 
 ```bash
-ddev start   # Démarre avec Mutagen automatiquement
-ddev drush status
+docker compose exec php start   # Démarre avec Mutagen automatiquement
+docker compose exec php drush status
 ```
 
 ---
@@ -193,5 +193,5 @@ docker compose exec php drush en devel kint -y
 | Bind mount direct | ✅ Aucun | ❌ 5-15s/page | ✅ Parfaite sync |
 | VirtioFS (Apple M1+) | ✅ Automatique | 🟡 2-5s/page | ✅ Bonne |
 | Mutagen + Docker | 🟡 Moyen | ✅ <1s/page | 🟡 Sync async |
-| DDEV | ✅ Simple | ✅ <1s/page | ✅ Très bonne |
+| Mutagen + Docker | ✅ Simple | ✅ <1s/page | ✅ Très bonne |
 | Linux natif | ✅ Aucun | ✅ <0.5s/page | ✅ Parfaite |

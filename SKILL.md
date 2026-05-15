@@ -29,18 +29,27 @@ Référentiel complet de l'environnement Docker pour Drupal : architecture servi
 | Thème Node.js dans le container | Service `webpack_theming` | [architecture.md](architecture.md) |
 | Capture emails en local | `maildev/maildev` | [architecture.md](architecture.md) |
 | Cache Memcached | Service `memcached:alpine` | [architecture.md](architecture.md) |
-| Performance bind mounts (Mac/Windows) | Mutagen, VirtioFS, ou DDEV | [performance.md](performance.md) |
+| Performance bind mounts (Mac/Windows) | Mutagen, VirtioFS, ou volume nommé | [performance.md](performance.md) |
 | Pipeline CI Docker | `docker-compose.ci.yml` + image source-code | [makefile-workflow.md](makefile-workflow.md) |
 | `.dockerignore` pour accélérer les builds | Exclure vendor, node_modules, .git | [dockerignore-build.md](dockerignore-build.md) |
 | Image prod sans Xdebug/Composer | Dockerfile multi-stage (`target: production`) | [dockerignore-build.md](dockerignore-build.md) |
 | Hot reload sans bind mount lent | `docker compose watch` (Compose 2.22+) | [dockerignore-build.md](dockerignore-build.md) |
-| DDEV — setup Drupal clé en main | `ddev config` + `ddev start` | [ddev.md](ddev.md) |
-| DDEV vs Docker Compose — choisir | Comparatif selon les besoins | [ddev.md](ddev.md) |
+| PostgreSQL à la place de MariaDB | Service `postgres:16.x` + `pgsql` driver | [docker-compose.md](docker-compose.md) |
+| Taskfile.yml — alternative moderne au Makefile | `task install`, `task up`, `task verify` | [taskfile.md](taskfile.md) |
+| Kubernetes — Drupal en production | Deployment, PVC, Ingress, kubectl drush | [kubernetes.md](kubernetes.md) |
+| GitLab Registry — images custom dans CI | `registry.gitlab.example.com/projet/image:sha` | [docker-compose.md](docker-compose.md) |
 | Solr / Search API | Service `solr:8.11` + core Drupal | [services-additionnels.md](services-additionnels.md) |
 | Elasticsearch / OpenSearch | Service `elasticsearch:8.x` | [services-additionnels.md](services-additionnels.md) |
 | Varnish — cache de pages HTTP | Service `varnish:7.4` + VCL Drupal | [services-additionnels.md](services-additionnels.md) |
 | MariaDB pas encore prête à l'install | `healthcheck` + `start_period` + wait-db | [debugging.md](debugging.md) |
 | Permissions fichiers selon user du container | `docker compose exec --user www-data` | [debugging.md](debugging.md) |
+| Image Docker optimisée pour la production | Multi-stage Dockerfile (`target: production`) | [production.md](production.md) |
+| OPcache production (validate_timestamps=0) | `opcache.ini` dédié prod | [production.md](production.md) |
+| Multi-projets simultanés sur un poste dev | Traefik reverse proxy partagé | [production.md](production.md) |
+| PHP derrière reverse proxy (IP réelle du client) | `$settings['reverse_proxy']` | [production.md](production.md) |
+| PHP-FPM tuning production | `pm.max_children`, `pm.max_requests` | [production.md](production.md) |
+| JIT PHP 8.3 pour migrations/imports lourds | `opcache.jit = 1255` avec benchmark avant activation | [production.md](production.md) |
+| Log aggregation légère (Loki + Grafana) | Services Loki + Promtail + Grafana dans docker-compose | [production.md](production.md) |
 
 ## Anti-Patterns Critiques
 
@@ -77,4 +86,4 @@ Référentiel complet de l'environnement Docker pour Drupal : architecture servi
 - `drupal-core` — settings.php, Config API
 - `drupal-config` — `drush cex/cim` dans les containers
 - `drupal-testing` — tests dans le CI Docker
-- `drupal-tooling` — Drush, DDEV
+- `drush` — Drush CLI, aliases, déploiement
