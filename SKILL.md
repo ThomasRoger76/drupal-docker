@@ -50,6 +50,8 @@ Référentiel complet de l'environnement Docker pour Drupal : architecture servi
 | PHP-FPM tuning production | `pm.max_children`, `pm.max_requests` | [production.md](production.md) |
 | JIT PHP 8.3 pour migrations/imports lourds | `opcache.jit = 1255` avec benchmark avant activation | [production.md](production.md) |
 | Log aggregation légère (Loki + Grafana) | Services Loki + Promtail + Grafana dans docker-compose | [production.md](production.md) |
+| Build image Docker + push GitLab Registry | `docker build --target production` + `docker push` | [production.md](production.md) |
+| Utiliser l'image buildée dans GitLab CI tests | `image: ${CI_REGISTRY_IMAGE}/drupal-php:${CI_COMMIT_SHA}` | [production.md](production.md) |
 
 ## Anti-Patterns Critiques
 

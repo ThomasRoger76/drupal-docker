@@ -516,3 +516,170 @@ docker compose exec loki logcli query '{container=~".*php.*"} |= "error"' --limi
 ```
 
 > **Ressources :** Loki + Promtail consomment ~100-300 Mo RAM. Pour un poste de dev, utiliser `grafana/loki:2.9.0-amd64` et limiter la rétention dans `local-config.yaml` à 72h.
+
+---
+
+## 9. Pipeline GitLab CI — Build Image + Push Registry
+
+Build de l'image Docker multi-stage dans GitLab CI, push vers le GitLab Container Registry, puis utilisation de l'image buildée pour les tests.
+
+```yaml
+# .gitlab-ci.yml — Build et push de l'image Docker vers GitLab Registry
+variables:
+  DOCKER_DRIVER: overlay2
+  IMAGE_BASE: ${CI_REGISTRY_IMAGE}/drupal-php
+  PHP_VERSION: "8.3"
+
+stages:
+  - build
+  - test
+  - deploy
+
+# ─────────────────────────────────────────────────────────────────────────────
+# STAGE BUILD — Construire et pousser les images vers le GitLab Registry
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Build l'image de production et la push dans le registry
+build:production-image:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    # Build multi-stage — target production uniquement
+    - |
+      docker build \
+        --target production \
+        --tag ${IMAGE_BASE}:${CI_COMMIT_SHA} \
+        --tag ${IMAGE_BASE}:latest \
+        --cache-from ${IMAGE_BASE}:latest \
+        --build-arg PHP_VERSION=${PHP_VERSION} \
+        --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
+        --build-arg VCS_REF=${CI_COMMIT_SHA} \
+        -f .docker/services/apache-php-base/Dockerfile \
+        .
+    - docker push ${IMAGE_BASE}:${CI_COMMIT_SHA}
+    - docker push ${IMAGE_BASE}:latest
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_COMMIT_TAG'
+
+# Build l'image de développement (avec Xdebug, PCOV, Composer)
+build:dev-image:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - |
+      docker build \
+        --target development \
+        --tag ${IMAGE_BASE}-dev:${CI_COMMIT_SHA} \
+        --tag ${IMAGE_BASE}-dev:latest \
+        --cache-from ${IMAGE_BASE}-dev:latest \
+        --build-arg PHP_VERSION=${PHP_VERSION} \
+        -f .docker/services/apache-php-base/Dockerfile \
+        .
+    - docker push ${IMAGE_BASE}-dev:${CI_COMMIT_SHA}
+    - docker push ${IMAGE_BASE}-dev:latest
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_MERGE_REQUEST_ID'
+
+# ─────────────────────────────────────────────────────────────────────────────
+# STAGE TEST — Utiliser l'image buildée pour les tests
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Utiliser l'image dev buildée pour PHPUnit
+test:phpunit:
+  stage: test
+  image: ${IMAGE_BASE}-dev:${CI_COMMIT_SHA}
+  needs:
+    - job: build:dev-image
+  services:
+    - name: mariadb:11.0
+      alias: database
+  variables:
+    MARIADB_ROOT_PASSWORD: root
+    MARIADB_DATABASE: drupal_test
+    MARIADB_USER: drupal
+    MARIADB_PASSWORD: drupal
+    SIMPLETEST_DB: mysql://drupal:drupal@database/drupal_test
+    SIMPLETEST_BASE_URL: http://localhost
+  before_script:
+    # Les dépendances sont déjà dans l'image — uniquement les dépendances de test
+    - composer install --no-progress --prefer-dist --optimize-autoloader
+    - cp phpunit.xml.dist phpunit.xml
+    # Attendre que MariaDB soit prête
+    - until mysqladmin ping -h database --silent; do sleep 2; done
+  script:
+    - vendor/bin/phpunit web/modules/custom --no-coverage --log-junit phpunit.xml
+  artifacts:
+    reports:
+      junit: phpunit.xml
+    when: always
+  rules:
+    - if: '$CI_MERGE_REQUEST_ID'
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
+# ─────────────────────────────────────────────────────────────────────────────
+# STAGE DEPLOY — Déployer l'image production
+# ─────────────────────────────────────────────────────────────────────────────
+
+deploy:production:
+  stage: deploy
+  image: docker:latest
+  needs:
+    - job: build:production-image
+    - job: test:phpunit
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    # Tirer l'image buildée (pas de rebuild)
+    - docker pull ${IMAGE_BASE}:${CI_COMMIT_SHA}
+    # Déployer via SSH sur le serveur de production
+    - |
+      ssh -o StrictHostKeyChecking=no deploy@${PROD_SERVER} "
+        docker pull ${IMAGE_BASE}:${CI_COMMIT_SHA}
+        docker compose -f /srv/drupal/docker-compose.prod.yml up -d
+        docker compose -f /srv/drupal/docker-compose.prod.yml exec -T php drush deploy -y
+      "
+  rules:
+    - if: '$CI_COMMIT_TAG'
+      when: manual
+  environment:
+    name: production
+    url: https://${PROD_DOMAIN}
+```
+
+### Variables GitLab CI requises
+
+```bash
+# À configurer dans GitLab → Settings → CI/CD → Variables
+CI_REGISTRY_USER   # Automatique (GitLab CI)
+CI_REGISTRY_PASSWORD  # Automatique (GitLab CI)
+CI_REGISTRY        # Automatique = registry.gitlab.com
+PROD_SERVER        # IP ou hostname du serveur de prod
+PROD_DOMAIN        # Domaine de production (ex: monsite.com)
+```
+
+### Utilisation locale — reproduire le build CI
+
+```bash
+# Construire l'image production localement (identique au CI)
+docker build \
+  --target production \
+  --tag drupal-php:local \
+  -f .docker/services/apache-php-base/Dockerfile \
+  .
+
+# Vérifier l'image construite
+docker run --rm drupal-php:local php -v
+
+# Nettoyer les anciennes images du registry local
+docker image prune -f --filter "dangling=true"
+```
