@@ -1,6 +1,6 @@
 ---
 name: drupal-docker
-description: Use when setting up Docker environments for Drupal projects, writing docker-compose.yml with PHP/MariaDB/Caddy services, configuring .env and settings.php integration, managing file permissions with DEV_UID/GID, connecting Xdebug from container to IDE via extra_hosts, setting up Makefile workflows for install/up/verify, handling bind mount performance issues, or configuring CI docker-compose pipelines for Drupal in Drupal 8-11+
+description: Use when setting up Docker environments for Drupal projects, writing docker-compose.yml with PHP/MariaDB/Caddy services, configuring .env and settings.php integration, managing file permissions with DEV_UID/GID, connecting Xdebug from container to IDE via extra_hosts, setting up Makefile or Taskfile workflows for install/up/verify, handling bind mount performance issues, configuring CI docker-compose pipelines, building multi-stage Dockerfiles for production (OPcache, JIT, non-root user), deploying to Kubernetes with PVC and Ingress, adding services like Solr, Elasticsearch, Varnish, or Memcached, or managing multi-project environments with Traefik reverse proxy in Drupal 8-11+
 ---
 
 # Drupal Docker & Environment Management — Référence Complète

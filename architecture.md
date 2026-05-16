@@ -299,3 +299,61 @@ php-base:  # Image de base sans outils de dev
   profiles:
     - build    # Uniquement activé avec: docker compose --profile build build php-base
 ```
+
+---
+
+## Sécurité — Exécution en Non-Root (Bonne Pratique Moderne)
+
+Par défaut, les images `php:*-apache` tournent en `root` — risque de sécurité si le container est compromis.
+
+### Dockerfile multi-stage avec user non-root
+
+```dockerfile
+FROM php:8.3-apache AS base
+
+# Créer un utilisateur non-root avec UID/GID fixes
+RUN groupadd --gid 1000 drupal && \
+    useradd --uid 1000 --gid drupal --shell /bin/bash --create-home drupal
+
+# Donner les droits Apache au user drupal
+RUN chown -R drupal:drupal /var/www/html && \
+    chown -R drupal:drupal /var/lock/apache2 /var/run/apache2 /var/log/apache2
+
+# Copier les fichiers en tant que user non-root
+COPY --chown=drupal:drupal . /var/www/html/
+
+USER drupal
+
+FROM base AS development
+# En dev, revenir en root pour installer Xdebug, etc.
+USER root
+RUN pecl install xdebug && docker-php-ext-enable xdebug
+USER drupal
+
+FROM base AS production
+# En prod : user non-root garanti
+```
+
+### Compatibilité avec les volumes bind-mount
+
+```yaml
+# docker-compose.yml — passer les UID/GID de l'hôte
+services:
+  php:
+    build:
+      context: .
+      args:
+        USER_UID: ${DEV_UID:-1000}
+        USER_GID: ${DEV_GID:-1000}
+    user: "${DEV_UID:-1000}:${DEV_GID:-1000}"
+```
+
+```dockerfile
+# Dans le Dockerfile — utiliser les args
+ARG USER_UID=1000
+ARG USER_GID=1000
+RUN groupadd --gid ${USER_GID} drupal && \
+    useradd --uid ${USER_UID} --gid drupal drupal
+```
+
+> **Note :** Sur Linux, faire correspondre `DEV_UID=$(id -u)` et `DEV_GID=$(id -g)` dans `.env` pour éviter les problèmes de permissions sur les fichiers montés.
