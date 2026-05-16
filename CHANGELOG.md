@@ -2,6 +2,17 @@
 
 ---
 
+## v1.2 — 2026-05-16
+
+**Description frontmatter étendue :**
+- Ajout : Kubernetes, Taskfile, Varnish, Solr, Elasticsearch, Traefik, multi-stage production, non-root user, GitLab Registry
+- Garantit le déclenchement du skill sur ces sujets déjà couverts dans les fichiers de référence
+
+**architecture.md — Sécurité containers :**
+- Nouvelle section "Exécution en Non-Root" : Dockerfile multi-stage avec `groupadd/useradd`, stages dev (root pour Xdebug) vs prod (non-root garanti), compatibilité bind-mount via `USER_UID/USER_GID` args dans docker-compose.yml
+
+---
+
 ## v1.1 — 2026-05-14
 
 **Bugs corrigés :**
