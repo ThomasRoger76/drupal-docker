@@ -357,3 +357,60 @@ RUN groupadd --gid ${USER_GID} drupal && \
 ```
 
 > **Note :** Sur Linux, faire correspondre `DEV_UID=$(id -u)` et `DEV_GID=$(id -g)` dans `.env` pour éviter les problèmes de permissions sur les fichiers montés.
+
+---
+
+## Docker BuildKit — Builds Accélérés
+
+BuildKit est le nouveau moteur de build Docker (actif par défaut depuis Docker 23+). Il apporte : builds parallèles, cache mount, secrets sécurisés.
+
+```bash
+# Activer BuildKit (Docker < 23)
+export DOCKER_BUILDKIT=1
+docker build .
+
+# OU configurer globalement dans /etc/docker/daemon.json
+{
+  "features": { "buildkit": true }
+}
+```
+
+### Dockerfile avec Cache Mount (Composer)
+
+```dockerfile
+# syntax=docker/dockerfile:1
+FROM php:8.3-apache AS base
+
+# Cache Composer entre les builds — BEAUCOUP plus rapide
+RUN --mount=type=cache,target=/root/.composer \
+    composer install --no-dev --optimize-autoloader --no-interaction
+
+# Cache APT entre les builds
+RUN --mount=type=cache,target=/var/cache/apt \
+    apt-get update && apt-get install -y libzip-dev && rm -rf /var/lib/apt/lists/*
+```
+
+### BuildKit avec Docker Compose
+
+```yaml
+# docker-compose.yml
+services:
+  php:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      # Cache layers entre builds
+      cache_from:
+        - registry.gitlab.example.com/drupal/php-base:latest
+      args:
+        BUILDKIT_INLINE_CACHE: "1"   # Inclure le cache dans l'image pushée
+```
+
+```bash
+# Build avec docker buildx bake (parallèle multi-target)
+docker buildx bake
+
+# Inspecter le cache
+docker buildx du
+docker buildx prune --filter type=exec.cachemount
+```
