@@ -52,6 +52,14 @@ Référentiel complet de l'environnement Docker pour Drupal : architecture servi
 | Log aggregation légère (Loki + Grafana) | Services Loki + Promtail + Grafana dans docker-compose | [production.md](production.md) |
 | Build image Docker + push GitLab Registry | `docker build --target production` + `docker push` | [production.md](production.md) |
 | Utiliser l'image buildée dans GitLab CI tests | `image: ${CI_REGISTRY_IMAGE}/drupal-php:${CI_COMMIT_SHA}` | [production.md](production.md) |
+| **Secrets Docker (credentials en prod)** | Docker Secrets (`docker secret create`) ou variables CI masquées → injectées dans le container | [production.md](production.md) |
+| **Health check MariaDB/PostgreSQL** | `healthcheck: test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]` dans compose | [debugging.md](debugging.md) |
+| **Health check PHP (FPM alive)** | `healthcheck: test: ["CMD-SHELL", "php -r 'exit(0);'"]` | [debugging.md](debugging.md) |
+| **DDEV — commandes custom (ddev share, ddev describe)** | `ddev describe` pour l'inventaire services / ports / URLs | [ddev.md](ddev.md) |
+| **DDEV — ajouter un service custom (Redis, Solr)** | `.ddev/docker-compose.redis.yaml` + `ddev restart` | [ddev.md](ddev.md) |
+| **DDEV — hook pré/post-start** | `.ddev/config.yaml` → `hooks.post-start: [exec: "drush cr"]` | [ddev.md](ddev.md) |
+| **Introspection container — inspecter les variables d'env** | `docker compose exec php printenv | grep DRUPAL` | [debugging.md](debugging.md) |
+| **Réduire la taille de l'image PHP** | Multi-stage + `--no-cache`, pas d'apt lists, pas de Composer en prod stage | [dockerignore-build.md](dockerignore-build.md) |
 
 ## Anti-Patterns Critiques
 
