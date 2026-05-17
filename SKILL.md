@@ -88,4 +88,4 @@ Référentiel complet de l'environnement Docker pour Drupal : architecture servi
 - `drupal-core` — settings.php, Config API
 - `drupal-config` — `drush cex/cim` dans les containers
 - `drupal-testing` — tests dans le CI Docker
-- `drush` — Drush CLI, aliases, déploiement
+- `drupal-deployment` — Drush CLI, aliases, déploiement en production
