@@ -91,3 +91,19 @@ Problèmes réels rencontrés sur les projets Drupal containerisés. Mis à jour
 - **Cause :** `error_level` à `hide` en local, ou erreur PHP fatale avant l'initialisation de Drupal
 - **Correct :** 1) `docker compose logs php -f` pour voir les erreurs PHP/Apache 2) Vérifier `web/sites/default/settings.local.php` a `error_level = verbose`
 - **Prévention :** settings.local.php avec `$config['system.logging']['error_level'] = 'verbose'` dans le README d'installation
+
+---
+
+## 2026-06-09 — Maintenance qualité
+
+### Tags d'images Docker obsolètes ou inexistants
+- **Symptôme :** image épinglée sur un patch ancien (`mariadb:11.0.2`, 2023) ou un tag qui n'existe pas (`postgres:16.11`)
+- **Cause :** tag mineur figé puis jamais mis à jour ; numéro de patch inventé
+- **Correct :** épingler un tag LTS / majeur maintenu — `mariadb:11.4` (LTS), `postgres:16`, `solr:9`. Jamais `latest` pour la DB (risque de migration de données involontaire entre versions majeures)
+- **Prévention :** au moindre doute sur l'existence d'un tag, vérifier sur Docker Hub. Préférer un tag majeur stable à un patch précis sauf besoin de reproductibilité stricte (alors épingler un digest `@sha256:`)
+
+### Remplacement automatique de masse (`sed`/find-replace) qui corrompt la doc
+- **Symptôme :** chaînes absurdes type `.docker compose exec php/config.yaml`, `https://projet.docker compose exec php.site` après un renommage global `ddev` → `docker compose exec php`
+- **Cause :** remplacement littéral non borné appliqué à des chemins, URLs et noms de fichiers (`.ddev/`, `ddev.md`) qui contenaient la sous-chaîne ciblée
+- **Correct :** relire chaque occurrence ; un remplacement de terme conceptuel ne doit jamais toucher les chemins/identifiants
+- **Prévention :** après un find-replace global, `grep` la chaîne de remplacement pour repérer les contextes invalides (URLs, chemins de fichiers, extensions `.md`)

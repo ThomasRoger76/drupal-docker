@@ -8,7 +8,7 @@ Apache Solr est le moteur de recherche le plus utilisé avec Drupal Search API.
 # docker-compose.yml
 services:
   solr:
-    image: solr:8.11-slim   # OU 9.x selon la compatibilité du module
+    image: solr:9-slim   # Search API Solr recommande Solr 9 (vérifier la version requise par le module)
     ports:
       - "${SOLR_PORT:-8983}:8983"
     environment:
@@ -48,12 +48,17 @@ docker compose restart solr
 // Core: drupal
 ```
 
-### Solr avec Docker Compose
+### Vérifier la connexion Solr
 
 ```bash
-# module non nécessaire avec Docker Compose
+# Redémarrer PHP après activation du module Search API Solr
 docker compose restart php
-# Solr accessible sur https://mon-projet.docker compose exec php.site:8983
+
+# Tester que le core Drupal répond (depuis l'hôte)
+curl http://localhost:8983/solr/drupal/admin/ping
+
+# Depuis le container PHP (DNS interne — host 'solr')
+docker compose exec php curl -s http://solr:8983/solr/drupal/admin/ping
 ```
 
 ---

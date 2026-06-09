@@ -601,7 +601,7 @@ test:phpunit:
   needs:
     - job: build:dev-image
   services:
-    - name: mariadb:11.0
+    - name: mariadb:11.4
       alias: database
   variables:
     MARIADB_ROOT_PASSWORD: root

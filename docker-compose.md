@@ -48,7 +48,7 @@ services:
 
   # ── MariaDB ──────────────────────────────────────────────────────────
   database:
-    image: mariadb:11.0.2
+    image: mariadb:11.4   # LTS (support jusqu'en 2029) — épingler un tag mineur, pas 'latest'
     ports:
       - "${MARIADB_PORT:-3306}:3306"
     environment:
@@ -260,7 +260,7 @@ services:
         condition: service_healthy
 
   postgres:
-    image: postgres:16.11
+    image: postgres:16   # Tag majeur stable — Drupal 11 supporte PostgreSQL 16
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:

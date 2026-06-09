@@ -171,7 +171,7 @@ apc.shm_size = 64M
 
 ```yaml
 database:
-  image: mariadb:11.0.2
+  image: mariadb:11.4   # LTS (support jusqu'en 2029)
   ports:
     - "${MARIADB_PORT}:3306"
   environment:

@@ -54,19 +54,32 @@ volumes:
 
 ---
 
-## Solution 2 — Mutagen (Docker Compose)
+## Solution 2 — `docker compose watch` (natif, Compose 2.22+)
 
-Mutagen peut être configuré avec Docker Compose via mutagen-compose :
+Depuis Docker Compose 2.22, le mode `watch` synchronise les fichiers de l'hôte vers le container sans bind mount lent ni outil externe. C'est l'alternative recommandée à Mutagen sur les versions récentes de Docker.
 
 ```yaml
-# .docker compose exec php/config.yaml
-mutagen_enabled: true   # Active Mutagen pour les performances
+# docker-compose.yml
+services:
+  php:
+    develop:
+      watch:
+        - action: sync
+          path: ./web/modules/custom
+          target: /var/www/html/web/modules/custom
+        - action: sync
+          path: ./web/themes/custom
+          target: /var/www/html/web/themes/custom
+        - action: rebuild
+          path: ./composer.json
 ```
 
 ```bash
-docker compose exec php start   # Démarre avec Mutagen automatiquement
-docker compose exec php drush status
+docker compose watch          # Démarre avec la synchro active
+docker compose up --watch -d  # En arrière-plan
 ```
+
+> Détails complets et limitations dans [dockerignore-build.md](dockerignore-build.md).
 
 ---
 
@@ -97,8 +110,8 @@ opcache.interned_strings_buffer = 16
 ```ini
 # php.ini développement — revalider à chaque requête
 opcache.enable = 1
-opcache.revalidate_freq = 0     # 0 mais avec validate_timestamps=1
-opcache.validate_timestamps = 1 # Vérifier si le fichier a changé
+opcache.validate_timestamps = 1 # Vérifier si le fichier a changé (voir les modifs sans drush cr)
+opcache.revalidate_freq = 0     # 0 = vérifier à chaque requête (combiné à validate_timestamps=1)
 ```
 
 **Sans OPcache ou avec mauvaise config → Drupal recompile 200+ fichiers PHP à chaque requête.**
@@ -192,6 +205,6 @@ docker compose exec php drush en devel kint -y
 |----------|-------|-------------|-----------|
 | Bind mount direct | ✅ Aucun | ❌ 5-15s/page | ✅ Parfaite sync |
 | VirtioFS (Apple M1+) | ✅ Automatique | 🟡 2-5s/page | ✅ Bonne |
-| Mutagen + Docker | 🟡 Moyen | ✅ <1s/page | 🟡 Sync async |
-| Mutagen + Docker | ✅ Simple | ✅ <1s/page | ✅ Très bonne |
+| `docker compose watch` (2.22+) | ✅ Natif | ✅ <1s/page | 🟡 Sync unidirectionnel |
+| Mutagen + `mutagen-compose` | 🟡 Moyen | ✅ <1s/page | 🟡 Sync async bidirectionnel |
 | Linux natif | ✅ Aucun | ✅ <0.5s/page | ✅ Parfaite |

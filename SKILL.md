@@ -38,7 +38,7 @@ Référentiel complet de l'environnement Docker pour Drupal : architecture servi
 | Taskfile.yml — alternative moderne au Makefile | `task install`, `task up`, `task verify` | [taskfile.md](taskfile.md) |
 | Kubernetes — Drupal en production | Deployment, PVC, Ingress, kubectl drush | [kubernetes.md](kubernetes.md) |
 | GitLab Registry — images custom dans CI | `registry.gitlab.example.com/projet/image:sha` | [docker-compose.md](docker-compose.md) |
-| Solr / Search API | Service `solr:8.11` + core Drupal | [services-additionnels.md](services-additionnels.md) |
+| Solr / Search API | Service `solr:9` + core Drupal | [services-additionnels.md](services-additionnels.md) |
 | Elasticsearch / OpenSearch | Service `elasticsearch:8.x` | [services-additionnels.md](services-additionnels.md) |
 | Varnish — cache de pages HTTP | Service `varnish:7.4` + VCL Drupal | [services-additionnels.md](services-additionnels.md) |
 | MariaDB pas encore prête à l'install | `healthcheck` + `start_period` + wait-db | [debugging.md](debugging.md) |
@@ -89,7 +89,7 @@ Référentiel complet de l'environnement Docker pour Drupal : architecture servi
 ## Auto-Amélioration
 
 - **[lessons.md](lessons.md)** — Problèmes rencontrés en projet réel.
-- **[CHANGELOG.md](CHANGELOG.md)** — Historique des versions (v1.0 courante).
+- **[CHANGELOG.md](CHANGELOG.md)** — Historique des versions (v1.3 courante).
 
 ## See Also
 

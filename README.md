@@ -1,6 +1,6 @@
 # Claude Code Skill — drupal-docker
 
-> Claude Code skill — Docker pour Drupal : services, DDEV, Makefile, Xdebug, CI/CD, Solr, Redis
+> Claude Code skill — Docker Compose natif pour Drupal : services, Makefile/Taskfile, Xdebug, CI/CD, multi-stage prod, K8s, Solr, Redis
 
 ## Installation
 
@@ -26,10 +26,13 @@ cd ~/.claude/skills/drupal-docker && git pull
 - docker-compose.md
 - dockerignore-build.md
 - env-config.md
+- kubernetes.md
 - lessons.md
 - makefile-workflow.md
 - performance.md
+- production.md
 - services-additionnels.md
+- taskfile.md
 
 ## Suite des skills Drupal
 
@@ -40,7 +43,7 @@ cd ~/.claude/skills/drupal-docker && git pull
 | [drupal-config](https://github.com/ThomasRoger76/drupal-config) | Config Management, UUID |
 | [drupal-testing](https://github.com/ThomasRoger76/drupal-testing) | PHPUnit, CI/CD |
 | [drupal-security](https://github.com/ThomasRoger76/drupal-security) | XSS, CSRF, SQL injection |
-| [drupal-docker](https://github.com/ThomasRoger76/drupal-docker) | Docker, DDEV, Makefile |
+| [drupal-docker](https://github.com/ThomasRoger76/drupal-docker) | Docker Compose, Makefile/Taskfile, K8s |
 | [drupal-obsidian](https://github.com/ThomasRoger76/drupal-obsidian) | Architecture → Obsidian |
 
 ## Licence

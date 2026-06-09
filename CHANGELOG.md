@@ -2,6 +2,27 @@
 
 ---
 
+## v1.3 — 2026-06-09
+
+**Corruptions de texte corrigées (remplacement automatique `ddev` → `docker compose exec php` cassé) :**
+- `performance.md` : "Solution 2 — Mutagen (Docker Compose)" contenait un YAML/bash absurde (`.docker compose exec php/config.yaml`, `docker compose exec php start`) — remplacé par une vraie section `docker compose watch` (natif 2.22+)
+- `performance.md` : tableau comparatif avec deux lignes "Mutagen + Docker" identiques — corrigé en `docker compose watch` vs `Mutagen + mutagen-compose`
+- `services-additionnels.md` : `https://mon-projet.docker compose exec php.site:8983` + "module non nécessaire" — remplacé par une vraie procédure de vérification Solr (`curl .../admin/ping`)
+- `dockerignore-build.md` : `.docker compose exec php/` dans le `.dockerignore` — corrigé en `.ddev/`
+- `CHANGELOG.md` : référence à un fichier inexistant `docker compose exec php.md` — corrigé en `ddev.md`
+
+**Versions d'images mises à jour (cible Drupal 11) :**
+- MariaDB `11.0.2` (patch obsolète de 2023) → `11.4` LTS (support jusqu'en 2029) dans `docker-compose.md`, `architecture.md`, `production.md` (service CI)
+- PostgreSQL `16.11` (version inexistante) → `16` (tag majeur stable) dans `docker-compose.md`
+- Solr `8.11` → `9` dans `SKILL.md` et `services-additionnels.md` (Search API Solr recommande Solr 9)
+
+**Cohérences corrigées :**
+- `performance.md` : config OPcache dev — commentaire trompeur "0 = jamais revalider (prod)" sur un bloc dev — clarifié
+- `CHANGELOG.md` : tableau de compatibilité — ligne v1.3 ajoutée (MariaDB 11.4, PHP 8.3/8.4, note exigence D11)
+- `README.md` : liste de fichiers incomplète (manquaient `kubernetes.md`, `production.md`, `taskfile.md`) — complétée ; tagline ajustée pour refléter l'approche Docker Compose natif (DDEV reste une alternative non recommandée)
+
+---
+
 ## v1.2 — 2026-05-16
 
 **Description frontmatter étendue :**
@@ -30,7 +51,7 @@
 
 **Nouveaux fichiers :**
 - `dockerignore-build.md` : `.dockerignore` template complet, Dockerfile multi-stage (prod vs dev), `docker compose watch`
-- `docker compose exec php.md` : DDEV configuration complète, comparatif DDEV vs Docker Compose, add-ons (Solr, Redis, Chrome), migration vers DDEV
+- `ddev.md` : comparatif DDEV vs Docker Compose, équivalences de commandes, migration depuis DDEV (alternative non recommandée ici)
 - `services-additionnels.md` : Solr Search API, Elasticsearch, Varnish, Redis complet avec prérequis, Mailpit, Portainer
 
 **Ajouts dans les fichiers existants :**
@@ -136,4 +157,7 @@ Les configurations documentées dans ce skill sont extraites de projets Drupal 1
 
 | Skill version | Docker Compose | MariaDB | PHP | Drupal |
 |--------------|---------------|---------|-----|--------|
-| v1.0 | v2 (plugin) | 11.x | 8.1-8.3 | D10, D11 |
+| v1.0–v1.2 | v2 (plugin) | 11.0.2 | 8.1–8.3 | D10, D11 |
+| v1.3 | v2 (plugin) | 11.4 LTS | 8.3, 8.4 | D10.3+, D11 |
+
+> Drupal 11 exige PHP 8.3 minimum. PHP 8.4 est supporté depuis Drupal 10.4 / 11.1.
